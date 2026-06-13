@@ -15,17 +15,24 @@ pipeline {
             }
         }
 
+        stage('Fix Permissions') {
+            steps {
+                sh 'chmod +x gradlew'
+            }
+        }
+
+        stage('Add the local.properties file') {
+            steps {
+                sh 'echo "sdk.dir=/opt/android-sdk" > local.properties'
+            }
+        }        
+
         stage('Clean') {
             steps {
                 sh './gradlew clean'
             }
         }
 
-        stage('Fix Permissions') {
-            steps {
-                sh 'chmod +x gradlew'
-            }
-        }
 
         stage('Build APK') {
             steps {
