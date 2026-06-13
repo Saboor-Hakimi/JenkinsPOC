@@ -5,6 +5,7 @@ pipeline {
     environment {
         ANDROID_HOME = "/opt/android-sdk"
         PATH = "${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/cmdline-tools/latest/bin:${env.PATH}"
+        FIREBASE_APP_ID = "1:172568603780:android:51bc15e9950ba762e766d1"
     }
 
     stages {
@@ -47,33 +48,32 @@ pipeline {
         }
 
 
-        stage('Create GitHub Release') {
+        stage('Install Firebase CLI') {
             steps {
-                withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
-
-                    sh '''
-                    echo $GITHUB_TOKEN | gh auth login --with-token
-
-                    TAG="build-${BUILD_NUMBER}"
-
-                    gh release create "$TAG" \
-                    --title "$TAG" \
-                    --notes "Automated Jenkins build #$BUILD_NUMBER"
-                    '''
-                }
+                sh '''
+                if ! command -v firebase >/dev/null 2>&1; then
+                    echo "Firebase CLI not found, installing..."
+                    curl -sL https://firebase.tools | bash
+                else
+                    echo "Firebase CLI already installed: $(firebase --version)"
+                fi
+                '''
             }
         }
 
 
-       stage('Upload APK') {
+        stage('Upload to Firebase App Distribution') {
             steps {
-                sh '''
-                APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" | head -n 1)
-                TAG="build-${BUILD_NUMBER}"
+                withCredentials([file(credentialsId: 'firebase-service-account', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+                    sh '''
+                    APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" | head -n 1)
 
-                gh release upload "$TAG" "$APK_PATH" --clobber
-                '''
+                    firebase appdistribution:distribute "$APK_PATH" \
+                      --app "$FIREBASE_APP_ID" \
+                      --groups "testers" \
+                      --release-notes "Automated Jenkins build #$BUILD_NUMBER"
+                    '''
+                }
             }
-        } 
-    }
+        }
 }
