@@ -68,7 +68,7 @@ pipeline {
                     sh '''
                     APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" | head -n 1)
 
-                    firebase appdistribution:distribute "$APK_PATH" \
+                    /opt/android-sdk/firebase-and-secrets/firebase appdistribution:distribute "$APK_PATH" \
                       --app "$FIREBASE_APP_ID" \
                       --groups "testers" \
                       --release-notes "Automated Jenkins build #$BUILD_NUMBER"
