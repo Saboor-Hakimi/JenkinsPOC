@@ -51,7 +51,7 @@ pipeline {
         stage('Install Firebase CLI') {
             steps {
                 sh '''
-                if ! command -v firebase >/dev/null 2>&1; then
+                if ! command -v /opt/android-sdk/firebase-and-secrets/firebase >/dev/null 2>&1; then
                     echo "Firebase CLI not found, installing..."
                     curl -sL https://firebase.tools | bash
                 else
