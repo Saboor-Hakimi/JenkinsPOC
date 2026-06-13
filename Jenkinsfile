@@ -21,6 +21,12 @@ pipeline {
             }
         }
 
+        stage('Fix Permissions') {
+            steps {
+                sh 'chmod +x gradlew'
+            }
+        }
+
         stage('Build APK') {
             steps {
                 sh './gradlew assembleRelease'
